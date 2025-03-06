@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Cell } from './Cell';
 import { Paper, Button } from '@mantine/core';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { TbPlus, TbTrash } from 'react-icons/tb'
 
 interface SpreadsheetProps {
   rows?: number;
@@ -123,7 +123,7 @@ export default function Spreadsheet({
             variant="outline"
             size="sm"
             onClick={addRow}
-            leftSection={<IconPlus size={16} />}
+            leftSection={<TbPlus size={16} />}
           >
             Add Row
           </Button>
@@ -131,7 +131,7 @@ export default function Spreadsheet({
             variant="outline"
             size="sm"
             onClick={addColumn}
-            leftSection={<IconPlus size={16} />}
+            leftSection={<TbPlus size={16} />}
           >
             Add Column
           </Button>
@@ -155,7 +155,7 @@ export default function Spreadsheet({
                       style={{ width: '100%', height: '32px' }}
                       onClick={() => deleteColumn(colIndex)}
                     >
-                      <IconTrash size={16} />
+                      <TbTrash size={16} />
                     </Button>
                   </td>
                 ))}
@@ -181,7 +181,7 @@ export default function Spreadsheet({
                       style={{ width: '100%', minHeight: '32px' }}
                       onClick={() => deleteRow(rowIndex)}
                     >
-                      <IconTrash size={16} />
+                      <TbTrash size={16} />
                     </Button>
                   </td>
                 </tr>
