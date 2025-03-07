@@ -225,14 +225,14 @@ export default function Spreadsheet({
                       height: "32px",
                     }}
                   >
-                    <Button
+                    {(!Array.isArray(rows) || colIndex > 0) && <Button
                       variant="subtle"
                       size="compact-sm"
                       style={{ width: "100%", height: "32px" }}
                       onClick={() => deleteColumn(colIndex)}
                     >
                       <TbTrash size={16} />
-                    </Button>
+                    </Button>}
                   </td>
                 ))}
                 <td style={{ width: "40px", border: "1px solid #e9ecef" }} />
@@ -243,6 +243,7 @@ export default function Spreadsheet({
                 <tr key={rowIndex}>
                   {row.map((cell, colIndex) => (
                     <Cell
+                      isHeader={(rowIndex === 0 && Array.isArray(cols)) || (colIndex === 0 && Array.isArray(rows))}
                       key={`${rowIndex}-${colIndex}`}
                       value={cell}
                       isSelected={
@@ -270,7 +271,7 @@ export default function Spreadsheet({
                         : "32px",
                     }}
                   >
-                    <Button
+                    {(!Array.isArray(cols) || rowIndex > 0) && <Button
                       variant="subtle"
                       size="compact-sm"
                       style={{
@@ -281,7 +282,7 @@ export default function Spreadsheet({
                       onClick={() => deleteRow(rowIndex)}
                     >
                       <TbTrash size={16} />
-                    </Button>
+                    </Button>}
                   </td> }
                 </tr>
               ))}

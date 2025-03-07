@@ -8,9 +8,10 @@ interface CellProps {
   onSelect: () => void;
   onEditStateChange?: (editing: boolean) => void;
   rowHeight?: number;
+  isHeader?: boolean;
 }
 
-export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange, rowHeight }: CellProps) {
+export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange, rowHeight, isHeader }: CellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -108,7 +109,7 @@ export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange,
         overflow: "visible",
         minWidth: "120px",
         height: rowHeight ? `${rowHeight}px` : undefined,
-        backgroundColor: isSelected ? "#f1f3f5" : "transparent",
+        backgroundColor: isSelected ? "#f1f3f5" : isHeader ? "#f8f8f8" : "transparent",
       }}
       onClick={onSelect}
       onDoubleClick={handleDoubleClick}

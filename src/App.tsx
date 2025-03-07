@@ -22,8 +22,8 @@ function Home() {
     <Container size="xl" py="xl">
       <Spreadsheet 
         {...form.getInputProps('val')} 
-        rows={['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']} 
-        cols={['apple','banana']} 
+        rows={8} 
+        cols={['apple','baanan']} 
       />
     </Container>
   );
