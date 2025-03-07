@@ -10,14 +10,7 @@ interface CellProps {
   rowHeight?: number;
 }
 
-export function Cell({
-  value,
-  isSelected,
-  onChange,
-  onSelect,
-  onEditStateChange,
-  rowHeight,
-}: CellProps) {
+export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange, rowHeight }: CellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -73,6 +66,10 @@ export function Cell({
           setEditValue(value || "");
         }, 0);
       }
+      if (e.key && e.key.length === 1 && !value) {
+        setIsEditing(true);
+        setEditValue((prevValue) => prevValue + e.key);
+      }
       return;
     }
 
@@ -87,12 +84,16 @@ export function Cell({
       e.preventDefault();
       setIsEditing(false);
       setEditValue(value);
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      const newValue = editValue;
+      setIsEditing(false);
+      setTimeout(() => {
+        onChange(newValue);
+      }, 0);
     }
 
-    if (
-      isEditing &&
-      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
-    ) {
+    if (isEditing && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
       e.stopPropagation();
     }
   };
@@ -112,8 +113,7 @@ export function Cell({
       onClick={onSelect}
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
-      tabIndex={0}
-    >
+      tabIndex={0}>
       {isEditing ? (
         <div
           style={{
@@ -127,8 +127,7 @@ export function Cell({
             boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
             borderRadius: "4px",
             padding: "4px",
-          }}
-        >
+          }}>
           <Textarea
             ref={inputRef}
             value={editValue}
@@ -173,8 +172,7 @@ export function Cell({
             textOverflow: "ellipsis",
             lineHeight: "1.5",
             boxSizing: "border-box",
-          }}
-        >
+          }}>
           {value}
         </div>
       )}
