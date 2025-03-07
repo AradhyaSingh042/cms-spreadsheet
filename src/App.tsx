@@ -2,7 +2,6 @@ import { MantineProvider, createTheme } from '@mantine/core';
 import Spreadsheet from "./spreadsheet";
 import { Container, Stack } from '@mantine/core';
 import { useForm } from "@mantine/form";
-import { useEffect } from 'react';
 
 const theme = createTheme({
   primaryColor: 'blue',

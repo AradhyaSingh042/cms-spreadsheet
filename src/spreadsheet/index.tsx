@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Cell } from "./Cell";
-import { Paper, Button } from "@mantine/core";
+import { Paper, Button, Group, Flex } from "@mantine/core";
 import { TbPlus, TbTrash } from "react-icons/tb";
 
 interface SpreadsheetProps {
@@ -10,16 +10,11 @@ interface SpreadsheetProps {
   onChange?: (value: string[][]) => void;
 }
 
-function generateEmptyData(
-  value: string[][],
-  rows: number | string[],
-  cols: number | string[]
-): string[][] {
+function generateEmptyData(value: string[][], rows: number | string[], cols: number | string[]): string[][] {
+  const both = Array.isArray(rows) && Array.isArray(cols);
 
-    const both = Array.isArray(rows) && Array.isArray(cols);
-
-    const rowCount = Array.isArray(rows) ? rows.length + (both ? 1 : 0) : Math.max(rows, value.length);
-    const colCount = Array.isArray(cols) ? cols.length + (both ? 1 : 0) : Math.max(cols, value[0]?.length || 0);
+  const rowCount = Array.isArray(rows) ? rows.length + (both ? 1 : 0) : Math.max(rows, value.length);
+  const colCount = Array.isArray(cols) ? cols.length + (both ? 1 : 0) : Math.max(cols, value[0]?.length || 0);
 
   return Array.from({ length: rowCount }, (_, rowIndex) =>
     Array.from({ length: colCount }, (_, colIndex) => {
@@ -31,22 +26,15 @@ function generateEmptyData(
       }
       return value[rowIndex]?.[colIndex] ?? "";
     })
-  );  
+  );
 }
 
-export default function Spreadsheet({
-  rows = 10,
-  cols = 8,
-  value,
-  onChange,
-}: SpreadsheetProps) {
+export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: SpreadsheetProps) {
   const [data, setData] = useState<string[][]>(() => {
     return generateEmptyData(value || [], rows, cols);
   });
 
-  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
-    null
-  );
+  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
   const [copyBuffer, setCopyBuffer] = useState<string | null>(null);
   const [activeEditing, setActiveEditing] = useState<boolean>(false);
   const [rowHeights, setRowHeights] = useState<number[]>([]);
@@ -80,10 +68,7 @@ export default function Spreadsheet({
         if (!prev) return [0, 0];
         const [row, col] = prev;
         const newRow = Math.max(0, Math.min(data.length - 1, row + rowDelta));
-        const newCol = Math.max(
-          0,
-          Math.min((data[0]?.length || 1) - 1, col + colDelta)
-        );
+        const newCol = Math.max(0, Math.min((data[0]?.length || 1) - 1, col + colDelta));
         return [newRow, newCol];
       });
     },
@@ -132,14 +117,7 @@ export default function Spreadsheet({
           break;
       }
     },
-    [
-      selectedCell,
-      data,
-      copyBuffer,
-      handleCellChange,
-      moveSelection,
-      activeEditing,
-    ]
+    [selectedCell, data, copyBuffer, handleCellChange, moveSelection, activeEditing]
   );
 
   useEffect(() => {
@@ -147,21 +125,30 @@ export default function Spreadsheet({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  const addRow = () => {
+  const addRow = (afterRow?: number) => {
     setData((prev) => {
       if (!prev.length || !prev[0]?.length) {
         return [[""]];
       }
-      return [...prev, Array(prev[0].length).fill("")];
+      const newRow = Array(prev[0].length).fill("");
+      const insertIndex = afterRow !== undefined ? afterRow + 1 : prev.length;
+      const newData = [...prev];
+      newData.splice(insertIndex, 0, newRow);
+      return newData;
     });
   };
 
-  const addColumn = () => {
+  const addColumn = (afterCol?: number) => {
     setData((prev) => {
       if (!prev.length) {
         return [[""]];
       }
-      return prev.map((row) => [...row, ""]);
+      return prev.map((row) => {
+        const newRow = [...row];
+        const insertIndex = afterCol !== undefined ? afterCol + 1 : newRow.length;
+        newRow.splice(insertIndex, 0, "");
+        return newRow;
+      });
     });
   };
 
@@ -172,33 +159,12 @@ export default function Spreadsheet({
 
   const deleteColumn = (colIndex: number) => {
     if (data[0]?.length <= 1) return;
-    setData((prev) =>
-      prev.map((row) => row.filter((_, index) => index !== colIndex))
-    );
+    setData((prev) => prev.map((row) => row.filter((_, index) => index !== colIndex)));
   };
 
   return (
     <Paper p="md" radius="sm" withBorder>
       <div style={{ width: "100%" }}>
-        <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addRow}
-            leftSection={<TbPlus size={16} />}
-          >
-            Add Row
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={addColumn}
-            leftSection={<TbPlus size={16} />}
-          >
-            Add Column
-          </Button>
-        </div>
-
         <div style={{ position: "relative", overflowX: "auto" }}>
           <table
             ref={tableRef}
@@ -206,38 +172,40 @@ export default function Spreadsheet({
               borderCollapse: "collapse",
               width: "100%",
               tableLayout: "fixed",
-            }}
-          >
+            }}>
             <colgroup>
               {data[0]?.map((_, index) => (
                 <col key={index} style={{ width: "120px" }} />
               ))}
               <col style={{ width: "40px" }} />
             </colgroup>
-            {!Array.isArray(cols) && <thead>
-              <tr>
-                {data[0]?.map((_, colIndex) => (
-                  <td
-                    key={colIndex}
-                    style={{
-                      border: "1px solid #e9ecef",
-                      padding: 0,
-                      height: "32px",
-                    }}
-                  >
-                    {(!Array.isArray(rows) || colIndex > 0) && <Button
-                      variant="subtle"
-                      size="compact-sm"
-                      style={{ width: "100%", height: "32px" }}
-                      onClick={() => deleteColumn(colIndex)}
-                    >
-                      <TbTrash size={16} />
-                    </Button>}
-                  </td>
-                ))}
-                <td style={{ width: "40px", border: "1px solid #e9ecef" }} />
-              </tr>
-            </thead> }
+            {!Array.isArray(cols) && (
+              <thead>
+                <tr>
+                  {data[0]?.map((_, colIndex) => (
+                    <td
+                      key={colIndex}
+                      style={{
+                        border: "1px solid #e9ecef",
+                        padding: 0,
+                        height: "32px",
+                      }}>
+                      {(!Array.isArray(rows) || colIndex > 0) && (
+                        <Flex align="center">
+                          <Button variant="subtle" size="compact-sm" style={{ width: "100%", height: "32px" }} onClick={() => deleteColumn(colIndex)}>
+                            <TbTrash size={16} />
+                          </Button>
+                          <Button variant="subtle" size="compact-sm" style={{ width: "100%", height: "32px" }} onClick={() => addColumn(colIndex)}>
+                            <TbPlus size={16} />
+                          </Button>
+                        </Flex>
+                      )}
+                    </td>
+                  ))}
+                  <td style={{ width: "40px", border: "1px solid #e9ecef" }} />
+                </tr>
+              </thead>
+            )}
             <tbody>
               {data.map((row, rowIndex) => (
                 <tr key={rowIndex}>
@@ -246,44 +214,50 @@ export default function Spreadsheet({
                       isHeader={(rowIndex === 0 && Array.isArray(cols)) || (colIndex === 0 && Array.isArray(rows))}
                       key={`${rowIndex}-${colIndex}`}
                       value={cell}
-                      isSelected={
-                        selectedCell?.[0] === rowIndex &&
-                        selectedCell?.[1] === colIndex
-                      }
-                      onChange={(value) =>
-                        handleCellChange(rowIndex, colIndex, value)
-                      }
+                      isSelected={selectedCell?.[0] === rowIndex && selectedCell?.[1] === colIndex}
+                      onChange={(value) => handleCellChange(rowIndex, colIndex, value)}
                       onSelect={() => setSelectedCell([rowIndex, colIndex])}
-                      onEditStateChange={(editing: boolean) =>
-                        setActiveEditing(editing)
-                      }
+                      onEditStateChange={(editing: boolean) => setActiveEditing(editing)}
                       rowHeight={rowHeights[rowIndex]}
                     />
                   ))}
-                  { !Array.isArray(rows) && <td
-                    style={{
-                      width: "40px",
-                      border: "1px solid #e9ecef",
-                      padding: 0,
-                      verticalAlign: "middle",
-                      height: rowHeights[rowIndex]
-                        ? `${rowHeights[rowIndex]}px`
-                        : "32px",
-                    }}
-                  >
-                    {(!Array.isArray(cols) || rowIndex > 0) && <Button
-                      variant="subtle"
-                      size="compact-sm"
+                  {!Array.isArray(rows) && (
+                    <td
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        minHeight: "32px",
-                      }}
-                      onClick={() => deleteRow(rowIndex)}
-                    >
-                      <TbTrash size={16} />
-                    </Button>}
-                  </td> }
+                        width: "40px",
+                        border: "1px solid #e9ecef",
+                        padding: 0,
+                        verticalAlign: "middle",
+                        height: rowHeights[rowIndex] ? `${rowHeights[rowIndex]}px` : "32px",
+                      }}>
+                      {(!Array.isArray(cols) || rowIndex > 0) && (
+                        <Flex>
+                          <Button
+                            variant="subtle"
+                            size="compact-sm"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              minHeight: "32px",
+                            }}
+                            onClick={() => addRow(rowIndex)}>
+                            <TbPlus size={16} />
+                          </Button>
+                          <Button
+                            variant="subtle"
+                            size="compact-sm"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              minHeight: "32px",
+                            }}
+                            onClick={() => deleteRow(rowIndex)}>
+                            <TbTrash size={16} />
+                          </Button>
+                        </Flex>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

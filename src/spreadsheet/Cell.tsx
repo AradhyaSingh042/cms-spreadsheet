@@ -42,6 +42,7 @@ export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange,
   }, [isSelected, isEditing]);
 
   const handleDoubleClick = () => {
+    if (isHeader) return;
     // Use setTimeout to avoid React render conflicts
     setTimeout(() => {
       setIsEditing(true);
@@ -59,6 +60,7 @@ export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange,
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (isHeader) return;
     if (!isEditing) {
       if (e.key === "Enter" && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
