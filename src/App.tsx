@@ -1,7 +1,8 @@
 import { MantineProvider, createTheme } from '@mantine/core';
 import Spreadsheet from "./spreadsheet";
-import { Container } from '@mantine/core';
+import { Container, Stack } from '@mantine/core';
 import { useForm } from "@mantine/form";
+import { useEffect } from 'react';
 
 const theme = createTheme({
   primaryColor: 'blue',
@@ -9,22 +10,47 @@ const theme = createTheme({
 });
 
 function Home() {
+  const savedData = localStorage.getItem('spreadsheetData');
+  const initialValues = savedData ? JSON.parse(savedData) : { sheet1: [], sheet2: [], sheet3: [], sheet4: [] };
   const form = useForm({
     mode: 'controlled',
-    initialValues: {
-      val: [[],["1","2","3","4","5"]] as string[][],
-    },
+    initialValues: initialValues,
     onValuesChange: (values) => {
       console.log(values);
+      localStorage.setItem('spreadsheetData', JSON.stringify(values));
     }
   });
+    
   return (
     <Container size="xl" py="xl">
+      <Stack>
+
       <Spreadsheet 
-        {...form.getInputProps('val')} 
-        rows={8} 
-        cols={['apple','baanan']} 
+        {...form.getInputProps('sheet1')} 
+        rows={4} 
+        cols={4} 
       />
+
+      <Spreadsheet 
+        {...form.getInputProps('sheet2')} 
+        rows={['a','b','c','d','e']} 
+        cols={4} 
+      />
+
+      <Spreadsheet 
+        {...form.getInputProps('sheet3')} 
+        rows={4} 
+        cols={['a','b','c','d','e']} 
+      />
+
+      <Spreadsheet 
+        {...form.getInputProps('sheet4')} 
+        rows={['A','B','C','D','E']} 
+        cols={['1','2','3','4','5']}
+      />
+
+      </Stack>
+
     </Container>
   );
 }
