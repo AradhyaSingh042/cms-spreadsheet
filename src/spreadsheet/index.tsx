@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Cell } from "./cell";
-import { Paper, Button, Flex } from "@mantine/core";
+import { Paper, ActionIcon, Flex } from "@mantine/core";
 import { useEventListener } from "@mantine/hooks";
-import { TbPlus, TbTrash } from "react-icons/tb";
+import { TbPlus, TbX } from "react-icons/tb";
 
 interface SpreadsheetProps {
   rows?: number | string[];
@@ -189,14 +189,14 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
                         height: "32px",
                       }}>
                       {(!Array.isArray(rows) || colIndex > 0) && (
-                        <Flex align="center">
-                          <Button variant="subtle" size="compact-sm" style={{ width: "100%", height: "32px" }} onClick={() => deleteColumn(colIndex)}>
-                            <TbTrash size={16} />
-                          </Button>
-                          <Button variant="subtle" size="compact-sm" style={{ width: "100%", height: "32px" }} onClick={() => addColumn(colIndex)}>
+                        <div style={{ display: "flex", justifyContent: "space-around" }}>
+                          <ActionIcon variant="subtle" size="sm" onClick={() => deleteColumn(colIndex)}>
+                            <TbX size={16} />
+                          </ActionIcon>
+                          <ActionIcon variant="subtle" size="sm" onClick={() => addColumn(colIndex)}>
                             <TbPlus size={16} />
-                          </Button>
-                        </Flex>
+                          </ActionIcon>
+                        </div>
                       )}
                     </td>
                   ))}
@@ -222,37 +222,27 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
                   {!Array.isArray(rows) && (
                     <td
                       style={{
-                        width: "40px",
+                        width: "55px",
                         border: "1px solid #e9ecef",
                         padding: 0,
                         verticalAlign: "middle",
                         height: rowHeights[rowIndex] ? `${rowHeights[rowIndex]}px` : "32px",
                       }}>
                       {(!Array.isArray(cols) || rowIndex > 0) && (
-                        <Flex>
-                          <Button
+                        <div style={{ display: "flex", justifyContent: "space-around", gap: "4px", minWidth: "55px" }}>
+                          <ActionIcon
                             variant="subtle"
-                            size="compact-sm"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              minHeight: "32px",
-                            }}
+                            size="sm"
                             onClick={() => addRow(rowIndex)}>
                             <TbPlus size={16} />
-                          </Button>
-                          <Button
+                          </ActionIcon>
+                          <ActionIcon
                             variant="subtle"
-                            size="compact-sm"
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              minHeight: "32px",
-                            }}
+                            size="sm"
                             onClick={() => deleteRow(rowIndex)}>
-                            <TbTrash size={16} />
-                          </Button>
-                        </Flex>
+                            <TbX size={16} />
+                          </ActionIcon>
+                        </div>
                       )}
                     </td>
                   )}
