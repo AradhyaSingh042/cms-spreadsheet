@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Cell } from "./Cell";
-import { Paper, Button, Group, Flex } from "@mantine/core";
+import { Paper, Button, Group, Flex, FocusTrap } from "@mantine/core";
+import { useEventListener } from "@mantine/hooks";
 import { TbPlus, TbTrash } from "react-icons/tb";
 
 interface SpreadsheetProps {
@@ -120,10 +121,7 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
     [selectedCell, data, copyBuffer, handleCellChange, moveSelection, activeEditing]
   );
 
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
+  const ref = useEventListener('keydown', handleKeyDown);
 
   const addRow = (afterRow?: number) => {
     setData((prev) => {
@@ -163,7 +161,7 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
   };
 
   return (
-    <Paper p="md" radius="sm" withBorder>
+    <Paper p="md" radius="sm" withBorder ref={ref}>
       <div style={{ width: "100%" }}>
         <div style={{ position: "relative", overflowX: "auto" }}>
           <table
