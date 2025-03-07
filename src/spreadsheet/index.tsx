@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Cell } from "./Cell";
-import { Paper, Button, Group, Flex, FocusTrap } from "@mantine/core";
+import { Cell } from "./cell";
+import { Paper, Button, Flex } from "@mantine/core";
 import { useEventListener } from "@mantine/hooks";
 import { TbPlus, TbTrash } from "react-icons/tb";
 
@@ -52,7 +52,7 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
         return newData;
       });
     },
-    [onChange]
+    []
   );
 
   useEffect(() => {
