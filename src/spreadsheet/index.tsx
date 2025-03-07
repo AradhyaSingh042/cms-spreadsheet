@@ -4,25 +4,34 @@ import { Paper, Button } from "@mantine/core";
 import { TbPlus, TbTrash } from "react-icons/tb";
 
 interface SpreadsheetProps {
-  rows?: number;
-  cols?: number;
+  rows?: number | string[];
+  cols?: number | string[];
   value?: string[][];
   onChange?: (value: string[][]) => void;
 }
 
 function generateEmptyData(
   value: string[][],
-  rows: number,
-  cols: number
+  rows: number | string[],
+  cols: number | string[]
 ): string[][] {
-  rows = Math.max(rows, value.length);
-  cols = Math.max(cols, value[0]?.length || 0);
-  return Array.from({ length: rows }, (_, rowIndex) =>
-    Array.from(
-      { length: cols },
-      (_, colIndex) => value[rowIndex]?.[colIndex] ?? ""
-    )
-  );
+
+    const both = Array.isArray(rows) && Array.isArray(cols);
+
+    const rowCount = Array.isArray(rows) ? rows.length + (both ? 1 : 0) : Math.max(rows, value.length);
+    const colCount = Array.isArray(cols) ? cols.length + (both ? 1 : 0) : Math.max(cols, value[0]?.length || 0);
+
+  return Array.from({ length: rowCount }, (_, rowIndex) =>
+    Array.from({ length: colCount }, (_, colIndex) => {
+      if (Array.isArray(rows) && colIndex === 0) {
+        return both ? rows[rowIndex - 1] ?? "" : rows[rowIndex] ?? "";
+      }
+      if (Array.isArray(cols) && rowIndex === 0) {
+        return both ? cols[colIndex - 1] ?? "" : cols[colIndex] ?? "";
+      }
+      return value[rowIndex]?.[colIndex] ?? "";
+    })
+  );  
 }
 
 export default function Spreadsheet({
@@ -205,7 +214,7 @@ export default function Spreadsheet({
               ))}
               <col style={{ width: "40px" }} />
             </colgroup>
-            <thead>
+            {!Array.isArray(cols) && <thead>
               <tr>
                 {data[0]?.map((_, colIndex) => (
                   <td
@@ -228,7 +237,7 @@ export default function Spreadsheet({
                 ))}
                 <td style={{ width: "40px", border: "1px solid #e9ecef" }} />
               </tr>
-            </thead>
+            </thead> }
             <tbody>
               {data.map((row, rowIndex) => (
                 <tr key={rowIndex}>
@@ -250,7 +259,7 @@ export default function Spreadsheet({
                       rowHeight={rowHeights[rowIndex]}
                     />
                   ))}
-                  <td
+                  { !Array.isArray(rows) && <td
                     style={{
                       width: "40px",
                       border: "1px solid #e9ecef",
@@ -273,7 +282,7 @@ export default function Spreadsheet({
                     >
                       <TbTrash size={16} />
                     </Button>
-                  </td>
+                  </td> }
                 </tr>
               ))}
             </tbody>

@@ -12,7 +12,7 @@ function Home() {
   const form = useForm({
     mode: 'controlled',
     initialValues: {
-      val: [] as string[][],
+      val: [[],["1","2","3","4","5"]] as string[][],
     },
     onValuesChange: (values) => {
       console.log(values);
@@ -20,7 +20,11 @@ function Home() {
   });
   return (
     <Container size="xl" py="xl">
-      <Spreadsheet {...form.getInputProps('val')} rows={5} cols={5} />
+      <Spreadsheet 
+        {...form.getInputProps('val')} 
+        rows={['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']} 
+        cols={['apple','banana']} 
+      />
     </Container>
   );
 }
