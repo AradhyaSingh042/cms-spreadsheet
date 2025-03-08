@@ -86,7 +86,7 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
       switch (e.key) {
         case "ArrowUp":
           e.preventDefault();
-          moveSelection(-1, 0);
+          if (!Array.isArray(cols) || selectedCell[0] > 1) moveSelection(-1, 0);
           break;
         case "ArrowDown":
           e.preventDefault();
@@ -94,7 +94,7 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
           break;
         case "ArrowLeft":
           e.preventDefault();
-          moveSelection(0, -1);
+          if (!Array.isArray(rows) || selectedCell[1] > 1) moveSelection(0, -1);
           break;
         case "ArrowRight":
           e.preventDefault();
@@ -172,26 +172,28 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
               tableLayout: "fixed",
             }}>
             <colgroup>
+              { !Array.isArray(rows) && <col style={{ width: "55px" }} /> }
               {data[0]?.map((_, index) => (
                 <col key={index} style={{ width: "120px" }} />
               ))}
-              <col style={{ width: "40px" }} />
             </colgroup>
             {!Array.isArray(cols) && (
               <thead>
                 <tr>
+                  { !Array.isArray(rows) && <td style={{ width: "55px", border: "1px solid #e9ecef" }} /> }
                   {data[0]?.map((_, colIndex) => (
                     <td
                       key={colIndex}
                       style={{
                         border: "1px solid #e9ecef",
+                        backgroundColor: '#f8f8f8',
                         padding: 0,
                         height: "32px",
                       }}>
                       {(!Array.isArray(rows) || colIndex > 0) && (
                         <div style={{ display: "flex", justifyContent: "space-around" }}>
-                          <ActionIcon variant="subtle" size="sm" onClick={() => deleteColumn(colIndex)}>
-                            <TbX size={16} />
+                          <ActionIcon color="gray" variant="subtle" size="sm" onClick={() => deleteColumn(colIndex)}>
+                            <TbX size={14} />
                           </ActionIcon>
                           <ActionIcon variant="subtle" size="sm" onClick={() => addColumn(colIndex)}>
                             <TbPlus size={16} />
@@ -200,13 +202,41 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
                       )}
                     </td>
                   ))}
-                  <td style={{ width: "40px", border: "1px solid #e9ecef" }} />
                 </tr>
               </thead>
             )}
             <tbody>
               {data.map((row, rowIndex) => (
                 <tr key={rowIndex}>
+                  {!Array.isArray(rows) && (
+                    <td
+                      style={{
+                        width: "55px",
+                        border: "1px solid #e9ecef",
+                        backgroundColor: '#f8f8f8',
+                        padding: 0,
+                        verticalAlign: "middle",
+                        height: rowHeights[rowIndex] ? `${rowHeights[rowIndex]}px` : "32px",
+                      }}>
+                      {(!Array.isArray(cols) || rowIndex > 0) && (
+                        <div style={{ display: "flex", justifyContent: "space-around", gap: "4px", minWidth: "55px" }}>
+                          <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            color="gray"
+                            onClick={() => deleteRow(rowIndex)}>
+                            <TbX size={14} />
+                          </ActionIcon>
+                          <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            onClick={() => addRow(rowIndex)}>
+                            <TbPlus size={16} />
+                          </ActionIcon>
+                        </div>
+                      )}
+                    </td>
+                  )}
                   {row.map((cell, colIndex) => (
                     <Cell
                       isHeader={(rowIndex === 0 && Array.isArray(cols)) || (colIndex === 0 && Array.isArray(rows))}
@@ -219,33 +249,6 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
                       rowHeight={rowHeights[rowIndex]}
                     />
                   ))}
-                  {!Array.isArray(rows) && (
-                    <td
-                      style={{
-                        width: "55px",
-                        border: "1px solid #e9ecef",
-                        padding: 0,
-                        verticalAlign: "middle",
-                        height: rowHeights[rowIndex] ? `${rowHeights[rowIndex]}px` : "32px",
-                      }}>
-                      {(!Array.isArray(cols) || rowIndex > 0) && (
-                        <div style={{ display: "flex", justifyContent: "space-around", gap: "4px", minWidth: "55px" }}>
-                          <ActionIcon
-                            variant="subtle"
-                            size="sm"
-                            onClick={() => addRow(rowIndex)}>
-                            <TbPlus size={16} />
-                          </ActionIcon>
-                          <ActionIcon
-                            variant="subtle"
-                            size="sm"
-                            onClick={() => deleteRow(rowIndex)}>
-                            <TbX size={16} />
-                          </ActionIcon>
-                        </div>
-                      )}
-                    </td>
-                  )}
                 </tr>
               ))}
             </tbody>

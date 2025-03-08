@@ -112,8 +112,9 @@ export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange,
         minWidth: "120px",
         height: rowHeight ? `${rowHeight}px` : undefined,
         backgroundColor: isSelected ? "#f1f3f5" : isHeader ? "#f8f8f8" : "transparent",
+        textAlign: isHeader ? "center" : "left",
       }}
-      onClick={onSelect}
+      onClick={isHeader ? undefined : onSelect}
       onDoubleClick={handleDoubleClick}
       onKeyDown={handleKeyDown}
       tabIndex={0}>
