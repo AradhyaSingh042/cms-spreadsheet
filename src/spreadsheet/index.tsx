@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Cell } from "./cell";
-import { Paper, ActionIcon, Flex } from "@mantine/core";
+import { Paper, ActionIcon } from "@mantine/core";
 import { useEventListener } from "@mantine/hooks";
 import { TbPlus, TbX } from "react-icons/tb";
 
@@ -151,12 +151,16 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
   };
 
   const deleteRow = (rowIndex: number) => {
-    if (data.length <= 1) return;
+    const isRowNamed = Array.isArray(cols);
+    const minRows = isRowNamed ? 2 : 1;
+    if (data.length <= minRows) return; // prevent deleting last editable row
     setData((prev) => prev.filter((_, index) => index !== rowIndex));
   };
 
   const deleteColumn = (colIndex: number) => {
-    if (data[0]?.length <= 1) return;
+    const isColNamed = Array.isArray(rows);
+    const minCols = isColNamed ? 2 : 1;
+    if ((data[0]?.length || 0) <= minCols) return; // prevent deleting last editable column
     setData((prev) => prev.map((row) => row.filter((_, index) => index !== colIndex)));
   };
 
