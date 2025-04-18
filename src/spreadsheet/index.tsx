@@ -30,7 +30,7 @@ function generateEmptyData(value: string[][], rows: number | string[], cols: num
   );
 }
 
-export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: SpreadsheetProps) {
+export default function Spreadsheet({ rows = 10, cols = 8, value, onChange}: SpreadsheetProps) {
   const [data, setData] = useState<string[][]>(() => {
     return generateEmptyData(value || [], rows, cols);
   });
@@ -78,7 +78,8 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (activeEditing) return;
+      // If in edit mode, or if the event target is a textarea, do nothing
+      if (activeEditing || (e.target && (e.target as HTMLElement).tagName === "TEXTAREA")) return;
 
       if (!selectedCell) return;
       const [row, col] = selectedCell;
@@ -118,10 +119,9 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
           break;
       }
     },
-    [selectedCell, data, copyBuffer, handleCellChange, moveSelection, activeEditing]
-  );
+    [selectedCell, data, copyBuffer, handleCellChange, moveSelection, activeEditing, rows, cols]);
 
-  const ref = useEventListener('keydown', handleKeyDown);
+  const ref = useEventListener("keydown", handleKeyDown);
 
   const addRow = (afterRow?: number) => {
     setData((prev) => {
@@ -164,6 +164,60 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
     setData((prev) => prev.map((row) => row.filter((_, index) => index !== colIndex)));
   };
 
+  const handlePaste = useCallback(
+    (e: ClipboardEvent) => {
+      if (!selectedCell || activeEditing) return;
+      const [startRow, startCol] = selectedCell;
+
+      // Get clipboard data
+      const clipboardData = e.clipboardData?.getData("text") || "";
+      if (!clipboardData) return;
+
+      // Split into rows and columns
+      const rows = clipboardData
+        .split(/\r\n|\n|\r/)
+        .filter((row) => row.length > 0);
+      const pasteData = rows.map((row) => row.split("\t"));
+
+      // Update data with pasted content
+      setData((prevData) => {
+        const newData = [...prevData];
+
+        pasteData.forEach((row, rowOffset) => {
+          const targetRow = startRow + rowOffset;
+          if (targetRow >= newData.length) return;
+
+          row.forEach((cell, colOffset) => {
+            const targetCol = startCol + colOffset;
+            if (targetCol >= newData[targetRow].length) return;
+
+            // Create a new row array to maintain immutability
+            if (newData[targetRow] === prevData[targetRow]) {
+              newData[targetRow] = [...newData[targetRow]];
+            }
+            newData[targetRow][targetCol] = cell;
+          });
+        });
+
+        onChange?.(newData);
+        return newData;
+      });
+
+      e.preventDefault();
+    },
+    [selectedCell, onChange, activeEditing]
+  );
+
+  useEffect(() => {
+    const table = tableRef.current;
+    if (!table) return;
+
+    table.addEventListener("paste", handlePaste);
+    return () => {
+      table.removeEventListener("paste", handlePaste);
+    };
+  }, [handlePaste]);
+
   return (
     <Paper p="md" radius="sm" withBorder ref={ref}>
       <div style={{ width: "100%" }}>
@@ -176,7 +230,7 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
               tableLayout: "fixed",
             }}>
             <colgroup>
-              { !Array.isArray(rows) && <col style={{ width: "55px" }} /> }
+              {!Array.isArray(rows) && <col style={{ width: "55px" }} />}
               {data[0]?.map((_, index) => (
                 <col key={index} style={{ width: "120px" }} />
               ))}
@@ -184,22 +238,33 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
             {!Array.isArray(cols) && (
               <thead>
                 <tr>
-                  { !Array.isArray(rows) && <td style={{ width: "55px", border: "1px solid #e9ecef" }} /> }
+                  {!Array.isArray(rows) && <td style={{ width: "55px", border: "1px solid #e9ecef" }} />}
                   {data[0]?.map((_, colIndex) => (
                     <td
                       key={colIndex}
                       style={{
                         border: "1px solid #e9ecef",
-                        backgroundColor: '#f8f8f8',
+                        backgroundColor: "#f8f8f8",
                         padding: 0,
                         height: "32px",
                       }}>
                       {(!Array.isArray(rows) || colIndex > 0) && (
-                        <div style={{ display: "flex", justifyContent: "space-around" }}>
-                          <ActionIcon color="gray" variant="subtle" size="sm" onClick={() => deleteColumn(colIndex)}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-around",
+                          }}>
+                          <ActionIcon
+                            color="gray"
+                            variant="subtle"
+                            size="sm"
+                            onClick={() => deleteColumn(colIndex)}>
                             <TbX size={14} />
                           </ActionIcon>
-                          <ActionIcon variant="subtle" size="sm" onClick={() => addColumn(colIndex)}>
+                          <ActionIcon
+                            variant="subtle"
+                            size="sm"
+                            onClick={() => addColumn(colIndex)} >
                             <TbPlus size={16} />
                           </ActionIcon>
                         </div>
@@ -217,13 +282,18 @@ export default function Spreadsheet({ rows = 10, cols = 8, value, onChange }: Sp
                       style={{
                         width: "55px",
                         border: "1px solid #e9ecef",
-                        backgroundColor: '#f8f8f8',
+                        backgroundColor: "#f8f8f8",
                         padding: 0,
                         verticalAlign: "middle",
-                        height: rowHeights[rowIndex] ? `${rowHeights[rowIndex]}px` : "32px",
-                      }}>
+                        height: rowHeights[rowIndex] ? `${rowHeights[rowIndex]}px` : "32px" }}>
                       {(!Array.isArray(cols) || rowIndex > 0) && (
-                        <div style={{ display: "flex", justifyContent: "space-around", gap: "4px", minWidth: "55px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-around",
+                            gap: "4px",
+                            minWidth: "55px",
+                          }}>
                           <ActionIcon
                             variant="subtle"
                             size="sm"

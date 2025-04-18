@@ -11,7 +11,7 @@ interface CellProps {
   isHeader?: boolean;
 }
 
-export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange, rowHeight, isHeader }: CellProps) {
+export function Cell({value, isSelected, onChange, onSelect, onEditStateChange, rowHeight, isHeader }: CellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -138,6 +138,30 @@ export function Cell({ value, isSelected, onChange, onSelect, onEditStateChange,
             onChange={(e) => setEditValue(e.currentTarget.value)}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
+            onPaste={(e) => {
+              if (isHeader) {
+                e.preventDefault();
+                return;
+              }
+              // In edit mode, we want to handle single-cell paste
+              const clipboardData = e.clipboardData.getData("text");
+              const rows = clipboardData
+                .split(/\r\n|\n|\r/)
+                .filter((row) => row.length > 0);
+
+              // If it's multi-cell data (contains tabs or multiple rows), only take the first cell
+              const firstCell = rows[0].split("\t")[0];
+
+              setEditValue((prevValue) => {
+                const start = e.currentTarget.selectionStart || 0;
+                const end = e.currentTarget.selectionEnd || 0;
+                return (
+                  prevValue.slice(0, start) + firstCell + prevValue.slice(end)
+                );
+              });
+
+              e.preventDefault();
+            }}
             styles={{
               root: {
                 width: "100%",
